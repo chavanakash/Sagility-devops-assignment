@@ -1,11 +1,16 @@
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
+apiVersion: v1
+kind: Service
 metadata:
-  name: devops-demo-api-monitor
+  name: devops-demo-api-metrics
+  namespace: default
+  labels:
+    app: devops-demo-api
 spec:
+  type: ClusterIP
   selector:
-    matchLabels:
-      app: devops-demo-api
-  endpoints:
-    - port: http
-      path: /metrics
+    app: devops-demo-api
+  ports:
+  - port: 3005
+    targetPort: 3005
+    protocol: TCP
+    name: metrics
