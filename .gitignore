@@ -1,5 +1,33 @@
-node_modules
+# Check if .gitignore exists
+cat .gitignore
+
+# If not, create it with this content:
+cat > .gitignore << 'EOF'
+# Node modules
+node_modules/
+npm-debug.log*
+
+# Terraform
+**/.terraform/*
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform.lock.hcl
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
 .env
-terraform.tfstate
-terraform.tfvars
+.env.local
+
+# Logs
 *.log
+EOF

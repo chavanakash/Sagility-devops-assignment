@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: devops-demo-api
-  namespace: default
   labels:
     app: devops-demo-api
 spec:
@@ -15,12 +14,9 @@ spec:
       labels:
         app: devops-demo-api
     spec:
-      restartPolicy: Always
-      imagePullSecrets:
-        - name: ghcr-access
       containers:
       - name: api
-        image: ghcr.io/chavanakash/sagility-assignment:latest
+        image: ghcr.io/YOUR_USERNAME/devops-assignment:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 3005
