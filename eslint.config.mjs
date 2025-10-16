@@ -1,24 +1,8 @@
-// eslint.config.mjs
-import js from '@eslint/js';
-import globals from 'globals';
+import js from "@eslint/js";
+import globals from "globals";
+import { defineConfig } from "eslint/config";
 
-export default [
-  js.configs.recommended,
-  {
-    languageOptions: {
-      ecmaVersion: 2021,
-      sourceType: 'module',
-      globals: {
-        ...globals.node,
-        ...globals.jest,
-      },
-    },
-    rules: {
-      'no-console': 'off', // allow console.log
-      'no-undef': 'off',   // avoid false positives on process, require, etc.
-      'no-unused-vars': ['warn'],
-      semi: ['error', 'always'],
-      quotes: ['error', 'single'],
-    },
-  },
-];
+export default defineConfig([
+  { files: ["**/*.{js,mjs,cjs}"], plugins: { js }, extends: ["js/recommended"], languageOptions: { globals: globals.browser } },
+  { files: ["**/*.js"], languageOptions: { sourceType: "commonjs" } },
+]);
