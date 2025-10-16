@@ -4,14 +4,14 @@ A simple Node.js Express API deployed on Azure Kubernetes cluster with complete 
 
 ## 📝 About The Project
 
-This project demonstrates a complete DevOps workflow for deploying a REST API to Kubernetes on Azure. I built this as part of a DevOps Engineer interview assignment.
+This project demonstrates a complete DevOps workflow for deploying a REST API to Kubernetes on Azure. I built this as part of a DevOps Engineer interview assignment at Sagility.
 
 ### What I Built
 
 - Simple Express.js API with health check endpoint
 - Automated CI/CD pipeline using GitHub Actions
-- Infrastructure provisioning with Terraform on Azure
-- Kubernetes deployment with monitoring
+- Infrastructure provisioning with Terraform on Azure (East US 2 region)
+- Kubernetes deployment on Minikube with monitoring stack
 
 ## 🚀 The Application
 
