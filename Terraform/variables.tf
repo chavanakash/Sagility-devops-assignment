@@ -17,9 +17,9 @@ variable "vm_name" {
 }
 
 variable "vm_size" {
-  description = "Size of the VM (use B2s for free tier)"
+  description = "Size of the VM"
   type        = string
-  default     = "Standard_B1s"  # 2 vCPUs, 4GB RAM - Free tier eligible
+  default     = "Standard_B2s"  # 2 vCPUs, 4GB RAM - Free tier eligible
 }
 
 variable "admin_username" {
