@@ -1,6 +1,8 @@
+# Terraform Configuration for DevOps Assignment
+# This creates: Resource Group, VNet, Subnet, NSG, Public IP, VM with Kubernetes
+
 terraform {
   required_version = ">= 1.0"
-  
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -13,47 +15,43 @@ provider "azurerm" {
   features {}
 }
 
-# Resource Group
-resource "azurerm_resource_group" "main" {
+# 1. Resource Group - Container for all resources
+resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
   location = var.location
-
+  
   tags = {
-    Environment = "DevOps-Assignment"
-    ManagedBy   = "Terraform"
+    Project     = "DevOps-Assignment"
+    Environment = "Production"
   }
 }
 
-# Virtual Network
-resource "azurerm_virtual_network" "main" {
-  name                = var.vnet_name
-  address_space       = var.address_space
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-
-  tags = {
-    Environment = "DevOps-Assignment"
-  }
+# 2. Virtual Network - Private network for our VM
+resource "azurerm_virtual_network" "vnet" {
+  name                = "devops-vnet"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
 }
 
-# Subnet
-resource "azurerm_subnet" "main" {
-  name                 = var.subnet_name
-  resource_group_name  = azurerm_resource_group.main.name
-  virtual_network_name = azurerm_virtual_network.main.name
-  address_prefixes     = var.subnet_prefix
+# 3. Subnet - Smaller network inside VNet
+resource "azurerm_subnet" "subnet" {
+  name                 = "devops-subnet"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
-# Network Security Group
-resource "azurerm_network_security_group" "main" {
-  name                = "${var.vm_name}-nsg"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
+# 4. Network Security Group - Firewall rules
+resource "azurerm_network_security_group" "nsg" {
+  name                = "devops-nsg"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
 
-  # Allow SSH
+  # SSH Access
   security_rule {
     name                       = "SSH"
-    priority                   = 1001
+    priority                   = 100
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -63,10 +61,10 @@ resource "azurerm_network_security_group" "main" {
     destination_address_prefix = "*"
   }
 
-  # Allow HTTP
+  # HTTP Access
   security_rule {
     name                       = "HTTP"
-    priority                   = 1002
+    priority                   = 110
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -76,23 +74,10 @@ resource "azurerm_network_security_group" "main" {
     destination_address_prefix = "*"
   }
 
-  # Allow HTTPS
+  # Kubernetes NodePort range (30000-32767)
   security_rule {
-    name                       = "HTTPS"
-    priority                   = 1003
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "443"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
-
-  # Allow Kubernetes NodePort range (for external access)
-  security_rule {
-    name                       = "Kubernetes-NodePort"
-    priority                   = 1004
+    name                       = "NodePort"
+    priority                   = 120
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -101,73 +86,62 @@ resource "azurerm_network_security_group" "main" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
-
-  tags = {
-    Environment = "DevOps-Assignment"
-  }
 }
 
-# Public IP
-resource "azurerm_public_ip" "main" {
-  name                = "${var.vm_name}-pip"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
+# 5. Public IP - To access VM from internet
+resource "azurerm_public_ip" "public_ip" {
+  name                = "devops-public-ip"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Static"
   sku                 = "Standard"
-
-  tags = {
-    Environment = "DevOps-Assignment"
-  }
 }
 
-# Network Interface
-resource "azurerm_network_interface" "main" {
-  name                = "${var.vm_name}-nic"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
+# 6. Network Interface - Virtual network card for VM
+resource "azurerm_network_interface" "nic" {
+  name                = "devops-nic"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = azurerm_subnet.main.id
+    subnet_id                     = azurerm_subnet.subnet.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.main.id
-  }
-
-  tags = {
-    Environment = "DevOps-Assignment"
+    public_ip_address_id          = azurerm_public_ip.public_ip.id
   }
 }
 
-# Associate NSG with Network Interface
-resource "azurerm_network_interface_security_group_association" "main" {
-  network_interface_id      = azurerm_network_interface.main.id
-  network_security_group_id = azurerm_network_security_group.main.id
+# 7. Connect NSG to Network Interface
+resource "azurerm_network_interface_security_group_association" "nic_nsg" {
+  network_interface_id      = azurerm_network_interface.nic.id
+  network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
-# Virtual Machine
-resource "azurerm_linux_virtual_machine" "main" {
+# 8. Virtual Machine - The actual server
+resource "azurerm_linux_virtual_machine" "vm" {
   name                = var.vm_name
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   size                = var.vm_size
   admin_username      = var.admin_username
 
-  network_interface_ids = [
-    azurerm_network_interface.main.id,
-  ]
+  # Attach network interface
+  network_interface_ids = [azurerm_network_interface.nic.id]
 
+  # SSH Key authentication (no password)
   admin_ssh_key {
     username   = var.admin_username
     public_key = var.ssh_public_key
   }
 
+  # OS Disk configuration
   os_disk {
     name                 = "${var.vm_name}-osdisk"
     caching              = "ReadWrite"
-    storage_account_type = "Premium_LRS"
-    disk_size_gb         = 128
+    storage_account_type = "Standard_LRS"
   }
 
+  # Ubuntu 22.04 LTS image
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
@@ -175,10 +149,13 @@ resource "azurerm_linux_virtual_machine" "main" {
     version   = "latest"
   }
 
-  # Custom data to run setup script on first boot
-  custom_data = base64encode(file("${path.module}/scripts/setup.sh"))
+  # This script runs automatically on first boot
+  custom_data = base64encode(templatefile("${path.module}/scripts/setup.sh", {
+    admin_username = var.admin_username
+  }))
 
   tags = {
-    Environment = "DevOps-Assignment"
+    Project     = "DevOps-Assignment"
+    Environment = "Production"
   }
 }
