@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: ghcr.io/YOUR_USERNAME/devops-assignment:latest
+        image: ghcr.io/chavanakash/sagility-assignment:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 3005
