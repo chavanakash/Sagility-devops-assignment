@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+yarn-error.log
+Dockerfile
+.dockerignore
+.git
+.gitignore
+coverage
+*.test.js
+*.spec.js
+.vscode
+.idea
+.DS_Store
+*.swp
+*.swo
+*.bak
