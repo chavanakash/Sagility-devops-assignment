@@ -44,10 +44,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-app.get('/metrics', async (req, res) => {
-  res.set('Content-Type', register.contentType);
-  res.end(await register.metrics());
-});
 
 // Start server
 const server = app.listen(PORT, '0.0.0.0', () => {

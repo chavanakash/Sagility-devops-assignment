@@ -1,42 +1,30 @@
 #!/bin/bash
+
+# This script runs on the VM during first boot via cloud-init
+# It installs all necessary tools for Kubernetes and Docker
+
 set -e
 
 echo "=== Starting VM Setup ==="
 
 # Update system
-echo "Updating system packages..."
 apt-get update
 apt-get upgrade -y
 
 # Install basic utilities
-echo "Installing basic utilities..."
-apt-get install -y \
-    curl \
-    wget \
-    git \
-    vim \
-    htop \
-    net-tools \
-    ca-certificates \
-    gnupg \
-    lsb-release
+apt-get install -y curl wget git vim htop net-tools ca-certificates gnupg lsb-release
 
 # Install Docker
 echo "Installing Docker..."
 mkdir -p /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt-get update
-apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+apt-get install -y docker-ce docker-ce-cli containerd.io
 
-# Start and enable Docker
+# Start Docker and add user to docker group
 systemctl start docker
 systemctl enable docker
-
-# Add azureuser to docker group
 usermod -aG docker azureuser
 
 # Install kubectl
@@ -56,7 +44,6 @@ install minikube-linux-amd64 /usr/local/bin/minikube
 rm minikube-linux-amd64
 
 # Configure system for Kubernetes
-echo "Configuring system for Kubernetes..."
 modprobe br_netfilter
 echo "br_netfilter" > /etc/modules-load.d/br_netfilter.conf
 
@@ -68,19 +55,6 @@ EOF
 
 sysctl --system
 
-# Start Minikube as azureuser
-echo "Starting Minikube..."
-su - azureuser -c "minikube start --driver=docker --cpus=4 --memory=8192 --disk-size=50g"
-
-# Configure kubectl for azureuser
-su - azureuser -c "mkdir -p ~/.kube"
-su - azureuser -c "minikube kubectl -- config view --raw > ~/.kube/config"
-su - azureuser -c "chmod 600 ~/.kube/config"
-
-# Enable Minikube addons
-echo "Enabling Minikube addons..."
-su - azureuser -c "minikube addons enable metrics-server"
-su - azureuser -c "minikube addons enable ingress"
-
 echo "=== VM Setup Complete ==="
-echo "Please log in as azureuser to use Kubernetes"
+echo "Tools installed: Docker, kubectl, Helm, Minikube"
+echo "Please run 'minikube start' as azureuser to start Kubernetes cluster"

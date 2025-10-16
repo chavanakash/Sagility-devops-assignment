@@ -19,10 +19,4 @@ describe('API Endpoints', () => {
     expect(response.body.status).toBe('healthy');
     expect(response.body.service).toBe('devops-demo-api');
   });
-
-  test('GET /metrics should return prometheus metrics', async () => {
-    const response = await request(app).get('/metrics');
-    expect(response.statusCode).toBe(200);
-    expect(response.text).toContain('http_requests_total');
-  });
 });
