@@ -1,5 +1,0 @@
-application_url = "http://172.176.172.113:30080"
-grafana_url = "http://172.176.172.113:30300"
-prometheus_url = "http://172.176.172.113:30900"
-ssh_command = "ssh azureuser@172.176.172.113"
-vm_public_ip = "172.176.172.113"
