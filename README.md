@@ -231,7 +231,7 @@ The monitoring stack helps to:
 ├── k8s/
 │   ├── deployment.yaml             # Kubernetes deployment
 │   ├── service.yaml                # Service definition
-│   └── monitoring.yaml             # Prometheus & Grafana
+│   └── ingress.yaml             # Prometheus & Grafana
 ├── terraform/
 │   ├── main.tf                     # All infrastructure resources
 │   ├── variables.tf                # Input variables
