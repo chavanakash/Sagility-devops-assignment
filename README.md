@@ -26,7 +26,7 @@ GET /
 Returns basic API information
 ```json
 {
-  "message": "Welcome to DevOps Demo API",
+  "message": "Welcome to DevOps DevOps assignment API - Sagility",
   "version": "1.0.0",
   "status": "healthy"
 }
